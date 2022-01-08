@@ -6,3 +6,14 @@
 // The xpg_echo shell option may be used to dynamically determine whether or not echo expands these escape characters by default.
 
 package main
+
+import (
+	"flag"
+	"fmt"
+)
+
+func usage() {
+	fmt.Printf("" +
+		"NAME:\n echo -- write arguments to the standard output")
+	flag.PrintDefaults()
+}

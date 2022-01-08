@@ -4,21 +4,65 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 )
 
 func main() {
-	nFlag:= flag.Bool("n", false, "the trailing newline is suppressed")
-	//hFlag:= flag.Bool("h",false,"-n trailing newline is suppressed")
-	flag.Parse()
-	for index, arg := range os.Args[1:] {
-		fmt.Fprintf(os.Stdout, arg)
-		if index != len(os.Args)-2 {
-			fmt.Fprintf(os.Stdout, " ")
-			fmt.Printf("\033[1;31;40m%s\033[0m\n","Red.")
-		}
 
+	var nFlag = flag.Bool("n", false, "the trailing newline is suppressed")
+	var color = flag.String("color", "white", "define the color of output")
+	flag.Usage = usage
+	flag.Parse()
+	//flag.NFlag()
+	for _, arg := range flag.Args() {
+		if strings.HasPrefix("-", arg) {
+			break
+		}
+		fmt.Fprintf(os.Stdout, replaceEnv(arg))
 	}
-	if *nFlag{
+
+	if *nFlag {
 		fmt.Fprintf(os.Stdout, "\n")
 	}
+
+	if *color == "white" {
+		fmt.Fprintf(os.Stdout, "white")
+	}
+}
+
+func replaceEnv(s string) string {
+	result := ""
+	temp := ""
+	for _, char := range s {
+		if char != '$' {
+			if temp == "" {
+				result += string(char)
+			} else if char == ' ' && char == '\t' && char == '\n' {
+				tempResult := os.Getenv(temp[1:])
+				if tempResult != "" {
+					result += tempResult
+				} else {
+					result += temp
+				}
+
+				temp = ""
+
+			} else {
+				temp += string(char)
+			}
+		} else {
+			temp = "$"
+		}
+	}
+
+	if temp != "" {
+		tempResult := os.Getenv(temp[1:])
+		if tempResult != "" {
+			result += tempResult
+		} else {
+			result += temp
+		}
+	}
+
+	return result
 }
